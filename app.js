@@ -29,7 +29,11 @@ app.use("/api/auth", authRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/messages", messageRoutes);
 
-
+app.use(cors({
+ origin: "https://teamflow-frontend.onrender.com",
+ credentials: true,
+ methods: ["GET", "POST", "OPTIONS", "PUT", "DELETE"]
+}));
 
 io.on("connection", (socket) => {
   console.log("Новый пользователь подключился:", socket.id);
