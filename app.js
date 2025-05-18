@@ -49,10 +49,21 @@ io.on("connection", (socket) => {
       // Сохраняем сообщение в БД
       const savedMessage = await Message.send(chatId, senderId, text, replyTo);
 
-      const userRes = await pool.query("SELECT username FROM users WHERE id = $1", [senderId]);
-      const username = userRes.rows[0]?.username || "Unknown";
-
-      const messageWithUser = { ...savedMessage, username };
+      const userRes = await pool.query(
+      `SELECT 
+          u.username,
+          cu.position_tag 
+        FROM users u
+        JOIN chat_users cu ON u.id = cu.user_id
+        WHERE u.id = $1 AND cu.chat_id = $2`,
+        [senderId, chatId]
+      );
+      
+      const messageWithUser = { 
+        ...savedMessage, 
+        username: userRes.rows[0]?.username || "Unknown",
+        position_tag: userRes.rows[0]?.position_tag  
+      };
 
       // Рассылаем новое сообщение с ID и временем всем в комнате
       io.to(`chat_${chatId}`).emit("newMessage", messageWithUser);
