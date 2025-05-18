@@ -7,7 +7,7 @@ const server = http.createServer(app);
 const { pool } = require("./db");
 const io = new Server(server, {
   cors: {
-    origin: "https://app.example.com",
+    origin: "https://teamflow-frontend.onrender.com",
   }
 });
 
