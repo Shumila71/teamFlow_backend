@@ -3,7 +3,6 @@ const { pool } = require('../db');
 module.exports = (requiredRole) => {
   return async (req, res, next) => {
     const userId = req.user.userId;
-    // chatId может быть в params или в body
     const chatId = req.params.chatId || req.body.chatId;
 
     if (!chatId) {

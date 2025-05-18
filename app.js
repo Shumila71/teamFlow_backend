@@ -46,7 +46,7 @@ io.on("connection", (socket) => {
   socket.on("sendMessage", async (data) => {
     const { chatId, senderId, text, replyTo } = data;
     try {
-      // Сохраняем сообщение в БД
+      // запишем в бд
       const savedMessage = await Message.send(chatId, senderId, text, replyTo);
 
       const userRes = await pool.query(
@@ -65,7 +65,7 @@ io.on("connection", (socket) => {
         position_tag: userRes.rows[0]?.position_tag  
       };
 
-      // Рассылаем новое сообщение с ID и временем всем в комнате
+      // рассылаем новое сообщение всем в комнате
       io.to(`chat_${chatId}`).emit("newMessage", messageWithUser);
     } catch (err) {
       console.error("Ошибка при сохранении сообщения:", err);

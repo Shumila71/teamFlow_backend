@@ -6,14 +6,13 @@ exports.createChat = async (req, res) => {
   const userId = req.user.userId;
 
   try {
-    // Создаем чат с creator_id
     const chatResult = await pool.query(
       'INSERT INTO chats (name, creator_id) VALUES ($1, $2) RETURNING *',
       [name, userId]
     );
     const chat = chatResult.rows[0];
 
-    // Добавляем создателя в chat_users с ролью admin
+    // добавим создателя в chat_users с ролью admin
     await pool.query(
       'INSERT INTO chat_users (chat_id, user_id, role) VALUES ($1, $2, $3)',
       [chat.id, userId, 'admin']
@@ -26,7 +25,7 @@ exports.createChat = async (req, res) => {
   }
 };
 
-// Проверка, является ли пользователь админом
+// проверка админки
 const isUserAdmin = async (chatId, userId) => {
   const res = await pool.query(
     'SELECT role FROM chat_users WHERE chat_id = $1 AND user_id = $2',
@@ -35,7 +34,7 @@ const isUserAdmin = async (chatId, userId) => {
   return res.rows.length > 0 && res.rows[0].role === 'admin';
 };
 
-// Назначение роли
+// админка выдача
 exports.assignRole = async (req, res) => {
   const currentUserId = req.user.userId;
   const { chatId } = req.params;
@@ -45,20 +44,19 @@ exports.assignRole = async (req, res) => {
     const isAdmin = await isUserAdmin(chatId, currentUserId);
     if (!isAdmin) return res.status(403).json({ error: 'Недостаточно прав' });
 
-    // Проверяем, есть ли уже пользователь в чате
+    // чекаем на то что он в чате
     const userInChat = await pool.query(
       'SELECT * FROM chat_users WHERE chat_id = $1 AND user_id = $2',
       [chatId, userId]
     );
 
     if (userInChat.rows.length === 0) {
-      // Если пользователя нет в чате, добавляем с нужной ролью
       await pool.query(
         'INSERT INTO chat_users (chat_id, user_id, role) VALUES ($1, $2, $3)',
         [chatId, userId, role]
       );
     } else {
-      // Если есть — обновляем роль
+      // обновляем роль
       await pool.query(
         'UPDATE chat_users SET role = $1 WHERE chat_id = $2 AND user_id = $3',
         [role, chatId, userId]
@@ -72,7 +70,7 @@ exports.assignRole = async (req, res) => {
   }
 };
 
-// Назначение тега должности
+// лепим тег
 exports.assignPositionTag = async (req, res) => {
   const currentUserId = req.user.userId;
   const { chatId } = req.params;
@@ -103,7 +101,6 @@ exports.addUserToChat = async (req, res) => {
       return res.status(400).json({ message: "chatId и username обязательны" });
     }
 
-    // Используй pool, а не db
     const userResult = await pool.query("SELECT id FROM users WHERE username = $1", [username]);
     if (userResult.rowCount === 0) {
       return res.status(404).json({ message: "Пользователь не найден" });
@@ -179,7 +176,7 @@ exports.getUserChats = async (req, res) => {
   }
 };
 
-// Удаление чата (только админ)
+// удаление чата
 exports.deleteChat = async (req, res) => {
   const chatId = req.params.chatId;
   const userId = req.user.userId;
@@ -199,7 +196,7 @@ exports.deleteChat = async (req, res) => {
   }
 };
 
-// Удаление пользователя из чата (только админ)
+// удаление пользователя из чата 
 exports.removeUserFromChat = async (req, res) => {
   const currentUserId = req.user.userId;
   const { chatId, userId } = req.params;
@@ -220,7 +217,7 @@ exports.removeUserFromChat = async (req, res) => {
   }
 };
 
-// Снятие роли администратора (только админ)
+// снятие админки
 exports.revokeAdmin = async (req, res) => {
   const currentUserId = req.user.userId;
   const { chatId, userId } = req.params;
